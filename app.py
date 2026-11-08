@@ -190,12 +190,9 @@ def reel(
         total_frames = max(duration * fps, 1)
         zoom_step = (target_zoom - 1) / total_frames
         video_filter = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920,gblur=sigma=30[bg];"
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];"
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto[comp];"
-            "[comp]eq=contrast=1.18:saturation=1.4:brightness=0.02,unsharp=5:5:0.6,"
-            "vignette=PI/4[graded];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
+            "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=white[comp];"
+            "[comp]eq=contrast=1.18:saturation=1.4:brightness=0.02,unsharp=5:5:0.6[graded];"
             f"[graded]zoompan=z='min(zoom+{zoom_step:.8f},{target_zoom})':d=1:s=1080x1920:fps={fps}[zoomed];"
             f"[zoomed]fade=t=in:st=0:d=0.5,fade=t=out:st={fade_out_start}:d=0.6[va]"
         )
