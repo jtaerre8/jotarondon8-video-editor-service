@@ -230,9 +230,9 @@ def reel(
         if has_overlay:
             final_inputs += ["-i", str(overlay_path)]
             if chain:
-                filt = f"[0:v]{chain[0]}[subbed];[subbed][1:v]overlay=0:0:format=auto,format=yuv420p[vout]"
+                filt = f"[0:v]{chain[0]}[subbed];[subbed][1:v]overlay=0:150:format=auto,format=yuv420p[vout]"
             else:
-                filt = "[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[vout]"
+                filt = "[0:v][1:v]overlay=0:150:format=auto,format=yuv420p[vout]"
         else:
             if chain:
                 filt = f"[0:v]{chain[0]},format=yuv420p[vout]"
