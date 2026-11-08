@@ -2,8 +2,9 @@
 
 Micro-servicio HTTP con FFmpeg que recibe un video + un PNG transparente (pie de
 página de marca, renderizado por n8n con Gotenberg) y devuelve un Reel vertical
-9:16 listo para publicar, disponible en una URL pública temporal (expira sola a
-los 30 minutos).
+9:16 listo para publicar: recorte, color cinematográfico, zoom lento (Ken
+Burns), fade in/out, subtítulos automáticos (Whisper local) y música de fondo
+opcional. Disponible en una URL pública temporal (expira sola a los 30 minutos).
 
 No contiene ningún token ni credencial: todo llega por variables de entorno.
 
@@ -15,6 +16,7 @@ No contiene ningún token ni credencial: todo llega por variables de entorno.
   - `overlay` (PNG transparente, opcional)
   - `start` (`HH:MM:SS`, default `00:00:00`)
   - `duration` (segundos, 1-180, default `60`)
+  - `music_url` (enlace directo a un .mp3/.wav, opcional — se mezcla bajando el audio original al 25%)
   - Responde `{"job_id": "...", "url": "https://.../files/<job_id>.mp4"}`
 - `GET /files/{job_id}.mp4` — público a propósito (Instagram debe poder
   descargarlo sin headers). El `job_id` es un UUID impredecible y el archivo se
