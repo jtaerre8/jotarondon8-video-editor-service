@@ -127,7 +127,8 @@ def build_subtitles(audio_path: Path, duration: int) -> str | None:
             lines.append(f"{idx}\n{format_srt_timestamp(start)} --> {format_srt_timestamp(end)}\n{text}\n")
             idx += 1
         return "\n".join(lines) if lines else None
-    except Exception:
+    except Exception as exc:
+        print(f"[subtitles] omitidos: {exc}", flush=True)
         return None
 
 
@@ -184,13 +185,18 @@ def reel(
 
         # 2) Pase de video: vertical + color + zoom lento + fades (+ musica si hay).
         fade_out_start = max(duration - 0.6, 0)
+        fps = 30
+        target_zoom = 1.18
+        total_frames = max(duration * fps, 1)
+        zoom_step = (target_zoom - 1) / total_frames
         video_filter = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
             "crop=1080:1920,gblur=sigma=30[bg];"
             "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];"
             "[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto[comp];"
-            "[comp]eq=contrast=1.08:saturation=1.2:brightness=0.02,unsharp=5:5:0.4[graded];"
-            "[graded]zoompan=z='min(zoom+0.0007,1.08)':d=1:s=1080x1920:fps=30[zoomed];"
+            "[comp]eq=contrast=1.18:saturation=1.4:brightness=0.02,unsharp=5:5:0.6,"
+            "vignette=PI/4[graded];"
+            f"[graded]zoompan=z='min(zoom+{zoom_step:.8f},{target_zoom})':d=1:s=1080x1920:fps={fps}[zoomed];"
             f"[zoomed]fade=t=in:st=0:d=0.5,fade=t=out:st={fade_out_start}:d=0.6[va]"
         )
         inputs = ["-ss", start, "-i", str(in_path)]
@@ -218,15 +224,15 @@ def reel(
         video_parts = ["[0:v]"]
         chain = []
         if srt_text:
-            style = "FontName=DejaVu Sans,FontSize=15,PrimaryColour=&H4CA2D4,BorderStyle=3,Outline=0,Shadow=0,MarginV=270"
+            style = "FontName=DejaVu Sans,FontSize=15,PrimaryColour=&H4CA2D4,BorderStyle=3,Outline=0,Shadow=0,MarginV=70"
             chain.append(f"subtitles='{srt_path}':force_style='{style}'")
         final_inputs = ["-i", str(intermediate_path)]
         if has_overlay:
             final_inputs += ["-i", str(overlay_path)]
             if chain:
-                filt = f"[0:v]{chain[0]}[subbed];[subbed][1:v]overlay=0:main_h-overlay_h:format=auto,format=yuv420p[vout]"
+                filt = f"[0:v]{chain[0]}[subbed];[subbed][1:v]overlay=0:0:format=auto,format=yuv420p[vout]"
             else:
-                filt = "[0:v][1:v]overlay=0:main_h-overlay_h:format=auto,format=yuv420p[vout]"
+                filt = "[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[vout]"
         else:
             if chain:
                 filt = f"[0:v]{chain[0]},format=yuv420p[vout]"
